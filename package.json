@@ -1,0 +1,28 @@
+{
+  "name": "strcov",
+  "version": "1.0.0",
+  "description": "str2u & u2utf8 & u2utf16 of web | nodejs",
+  "main": "strcov.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FEFF01/strcov.git"
+  },
+  "keywords": [
+    "string",
+    "decoder",
+    "utf-8",
+    "utf-16",
+    "unicode",
+    "browser",
+    "nodejs"
+  ],
+  "author": "feff01",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FEFF01/strcov/issues"
+  },
+  "homepage": "https://github.com/FEFF01/strcov#readme"
+}
