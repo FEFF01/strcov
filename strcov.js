@@ -1,4 +1,17 @@
 void (function() {
+  var _exports =
+    typeof module !== "undefined" && module && module.exports
+      ? module.exports
+      : window;
+  _exports.str2u = str2u;
+  _exports.str2utf8 = str2utf8;
+  _exports.str2utf16 = str2utf16;
+  _exports.u2utf8 = u2utf8;
+  _exports.u2utf16 = u2utf16;
+  _exports.u_2str = u_2str;
+  _exports.utf8_2str = utf8_2str;
+  _exports.utf16_2str = utf16_2str;
+
   var mask_up10 = parseInt("11111111110000000000", 2),
     mask_low10 = parseInt("1111111111", 2),
     mask_low6 = parseInt("111111", 2),
@@ -7,6 +20,7 @@ void (function() {
 
   /**
    * 字符串转unicode数组
+   * @param {String} str
    * @returns {Array}
    */
   function str2u(str) {
@@ -27,7 +41,24 @@ void (function() {
   }
 
   /**
+   * @param {String} str
+   * @returns {Array}
+   */
+  function str2utf8(str) {
+    return str2u(str).reduce((u8arr, u) => u8arr.concat(u2utf8(u)), []);
+  }
+
+  /**
+   * @param {String} str
+   * @returns {Array}
+   */
+  function str2utf16(str) {
+    return Array.prototype.map.call(str, char => char.charCodeAt(0));
+  }
+
+  /**
    * unicode转utf8
+   * @param {Number} code
    * @returns {Array}
    */
   function u2utf8(code) {
@@ -49,6 +80,7 @@ void (function() {
 
   /**
    * unicode转utf16
+   * @param {Number} code
    * @returns {Array}
    */
   function u2utf16(code) {
@@ -62,9 +94,71 @@ void (function() {
       ];
     }
   }
-  var _exports =
-    typeof module !== "undefined" && module && module.exports ? module.exports : window;
-  _exports.str2u = str2u;
-  _exports.u2utf8 = u2utf8;
-  _exports.u2utf16 = u2utf16;
+
+  /**
+   *
+   * @param {Number|Array[Number]|TypeArray} codes
+   * @returns {String}
+   */
+  function u_2str(codes) {
+    return typeof codes === "number"
+      ? _utf16chars_2str(u2utf16(codes))
+      : codes.map(code => _utf16chars_2str(u2utf16(code))).join("");
+  }
+
+  /**
+   *
+   * @param {Number|Array[Number]|TypeArray} codes
+   * @returns {String}
+   */
+  function utf16_2str(codes) {
+    return typeof codes === "number"
+      ? String.fromCharCode(codes)
+      : _utf16chars_2str(codes);
+  }
+  /**
+   *
+   * @param {Number|Array[Number]|TypeArray} codes
+   * @returns {String}
+   */
+  function utf8_2str(codes) {
+    typeof codes === "number" && (codes = [codes]);
+    var result = "";
+    for (
+      var i = 0, l = codes.length, unicode = 0, count = 0, code;
+      i < l;
+      i++
+    ) {
+      code = codes[i];
+      switch (true) {
+        case (code & 0x80) === 0:
+          result += String.fromCharCode(code);
+          break;
+        case (code & 0xc0) === 0x80:
+          if (--count >= 0) {
+            unicode |= (code & mask_low6) << (count * 6);
+            if (count === 0) {
+              result += String.fromCharCode.apply(String, u2utf16(unicode));
+            }
+          }
+          break;
+        default:
+          if (count !== 0) {
+            result += String.fromCharCode.apply(String, u2utf16(unicode));
+          }
+          for (count = 2; count <= 6; count++) {
+            if ((code & bits_rev[count]) === bits_rev[count - 1]) {
+              unicode = (code & !bits_rev[count]) << (count-- * 6);
+              break;
+            }
+          }
+          break;
+      }
+    }
+    return result;
+  }
+
+  function _utf16chars_2str(codes) {
+    return String.fromCharCode.apply(String, codes);
+  }
 })();
